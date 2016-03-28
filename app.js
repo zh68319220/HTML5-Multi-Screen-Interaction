@@ -4,76 +4,47 @@ var fs = require('fs');
 var url = require("url");
 var port = 8000;
 
+// routes
 function handler (req, res) {
+    var template_path = '/';
 	if (req.method === 'GET' && req.url === '/') {
-		fs.readFile(__dirname + '/client.html',
-			function (err, data) {
-	    		if (err) {
-		      		res.writeHead(500);
-		      		return res.end('Error loading client.html');
-		   		}
-				res.writeHead(200);
-		    	res.end(data);
-		  	}
-		);
+        if(rooms.length == maxRoom){
+            template_path = '/temp/fullServers.html';
+        }else{ template_path = '/temp/client.html'; }
 	}
 	else if( req.method === 'GET' && req.url.match('/enter') ){
-		// 扫码的伙伴进入房间
-		var params = [];
-		params = url.parse(req.url,true).query;
-		fs.readFile(__dirname + '/client2.html',
-			function (err, data) {
-	    		if (err) {
-		      		res.writeHead(500);
-		      		return res.end('Error loading client.html');
-		   		}
-				res.writeHead(200);
-		    	res.end(data);
-
-				for(var i=0;i<rooms.length;i++){
-					if(rooms[i].id == params.roomid){
-
-					}
-				}
-		  	}
-		);
+		// the second client enter the room by qrcode
+        template_path = '/temp/client2.html';
 	}
 	else if(req.method === 'GET' && req.url === '/qrcode.min.js'){
-		fs.readFile(__dirname + '/qrcode.min.js',
-			function (err, data) {
-	    		if (err) {
-		      		res.writeHead(500);
-		      		return res.end('Error loading qrcode');
-		   		}
-				res.writeHead(200);
-		    	res.end(data);
-		  	}
-		);
+        template_path = '/js/qrcode.min.js';
 	}
 	else if( req.method === 'GET' && req.url === '/server.js' ){
-		fs.readFile(__dirname + '/server.js',
-			function (err, data) {
-	    		if (err) {
-		      		res.writeHead(500);
-		      		return res.end('Error loading server.js');
-		   		}
-				res.writeHead(200);
-		    	res.end(data);
-		  	}
-		);
+        template_path = '/js/server.js';
 	}
-	else{}
+	else{
+        template_path = '/temp/notFound.html';
+    }
+    fs.readFile(__dirname + template_path,
+        function (err, data) {
+            if (err) {
+                res.writeHead(500);
+                return res.end('Error loading ' + template_path);
+            }
+            res.writeHead(200);
+            res.end(data);
+        }
+    );
 }
 
 // server based on socket io
-
-var maxRoom = 2; // 最大房间数
-var rooms = []; // 房间
-var maxConnect = 2; //房间容量
+var maxRoom = 2; // max room number
+var rooms = []; // room array
+var maxConnect = 2; // max connection per room
 
 io.on('connection', function (socket) {
 
-	console.log('User connected');
+	console.log('User connected, room num:' + rooms.length);
   	socket.on('disconnect', function () {
 		// delete socket or room
 		for(var i=0;i<rooms.length;i++){
@@ -93,30 +64,35 @@ io.on('connection', function (socket) {
 	// clients register room
 	socket.on('registerRoom', function (data) {
 		// add socket and room
-		var exist = false;
-		for(var i=0;i<rooms.length;i++){
-			if(rooms[i].id == data.room_id && rooms[i].connected.length < maxConnect){
-				rooms[i].connected.push(socket);
-				exist = true;
+		var exist = false, room_length = rooms.length, i = 0;
+		if( room_length <= maxRoom){
+			for(;i < room_length; i++){
+				if(rooms[i].id == data.room_id && rooms[i].connected.length < maxConnect){
+					rooms[i].connected.push(socket);
+					exist = true;
+				}
 			}
-		}
-		if(rooms.length < maxRoom && !exist){
-			rooms.push({id: data.room_id, connected: [socket]});
-		}
+			if(room_length < maxRoom && !exist){
+				rooms.push({id: data.room_id, connected: [socket]});
+			}
+		}else{
+            // server is full
+        }
   	});
 	// server listen messages
 	socket.on('msg', function(data){
-		for(var i=0;i<rooms.length;i++){
-			if(rooms[i].id == data.room_id && rooms[i].connected.length == 2){
-				rooms[i].connected[0].emit('userAction', {msg: data.msg});
-				rooms[i].connected[1].emit('userAction', {msg: data.msg});
+		var i = 0, room_length = rooms.length;
+		for(;i < room_length; i++){
+			if(rooms[i].id == data.room_id && rooms[i].connected.length == maxConnect){
+                for(var j = 0; j < maxConnect; j++){
+                    rooms[i].connected[j].emit('userAction', {msg: data.msg});
+                }
 			}
 		}
-		console.log(data);
 	});
 });
 
-// 启动服务
+// start the server
 app.listen(port, function() {
 	console.log('listening on *:' + port);
 });

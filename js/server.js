@@ -29,7 +29,7 @@
             }
         },
         // 断开连接
-        unregisterRoom: function () {
+        unregisterRoom: function (){
 
         },
         init: function(){
@@ -62,11 +62,11 @@
             var connect = d.getElementById('connect');
             var _left = 0;
             _this.socket.on('userAction', function(data){
-                console.log(data);
                 _left += parseInt(data.msg);
-                console.log(d.getElementById('connect'));
-                d.getElementById('connect').style.left = _left + 'px';
-                d.getElementById('connect').style.top = _left + 'px';
+                if (connect) {
+                    d.getElementById('connect').style.left = _left + 'px';
+                    d.getElementById('connect').style.top = _left + 'px';
+                }
             });
             if(move){
                 move.addEventListener('click', function (e) {
