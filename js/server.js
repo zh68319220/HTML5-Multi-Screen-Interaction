@@ -67,13 +67,21 @@
                     d.getElementById('connect').style.left = _left + 'px';
                     d.getElementById('connect').style.top = _left + 'px';
                 }
+                if (move) {
+                    d.getElementById('move').style.left = _left + 'px';
+                    d.getElementById('move').style.top = _left + 'px';
+                }
             });
             if(move){
                 move.addEventListener('click', function (e) {
                     _this.socket.emit('msg', {room_id: _this.roomID, msg: 10});
                 },false);
             }
-
+            if(connect){
+                connect.addEventListener('click', function (e) {
+                    _this.socket.emit('msg', {room_id: _this.roomID, msg: 10});
+                },false);
+            }
         }
     };
     w.Interact.init();
