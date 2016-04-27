@@ -1,0 +1,17 @@
+一.linux环境下：
+
+$ PORT=1234 node app.js
+
+使用上面命令每次都需要重新设置，如果想设置一次永久生效，使用下面的命令。
+
+$ export PORT=1234	
+
+$ node app.js	
+
+二.windows下面按照顺序这样进行：
+
+set PORT=1234
+
+node app.js
+
+windows的方法试过有效

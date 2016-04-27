@@ -1,16 +1,13 @@
+var port =  process.env.PORT || 8080;
 var app = require('http').createServer(handler);
 var io = require('socket.io')(app);
 var fs = require('fs');
 var url = require("url");
-var port = 8000;
-
 // routes
 function handler (req, res) {
     var template_path = '/';
+	res.setHeader("CIP", "10.2.24.236:" + port);
 	if (req.method === 'GET' && req.url === '/') {
-   		template_path = '/temp/main.html';
-	}
-	else if (req.method === 'GET' && req.url === '/hudong') {
         if(rooms.length == maxRoom){
             template_path = '/temp/fullServers.html';
         }else{ template_path = '/temp/client.html'; }
@@ -24,12 +21,6 @@ function handler (req, res) {
 	}
 	else if( req.method === 'GET' && req.url === '/server.js' ){
         template_path = '/js/server.js';
-	}
-	else if( req.method === 'GET' && req.url === '/danmu' ){
-        template_path = '/temp/danmu.html';
-	}
-	else if( req.method === 'GET' && req.url === '/pinglun' ){
-        template_path = '/temp/pinglun.html';
 	}
 	else{
         template_path = '/temp/notFound.html';
@@ -47,12 +38,12 @@ function handler (req, res) {
 }
 
 // server based on socket io
-var maxRoom = 20; // max room number
+var maxRoom = 3; // max room number
 var rooms = []; // room array
 var maxConnect = 3; // max connection per room
 
 io.on('connection', function (socket) {
-
+	console.log('Current gid: ' + process.pid);
 	console.log('User connected, room num:' + rooms.length);
   	socket.on('disconnect', function () {
 		// delete socket or room

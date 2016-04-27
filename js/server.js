@@ -7,10 +7,23 @@
     var w = window;
     var d = document;
     var wrapper = d.getElementById("wrapper");
+
+    var req = new XMLHttpRequest();
+    req.open('GET', document.location, false);
+    req.send(null);
+    var _IP = req.getResponseHeader("CIP");
+    var ip = _IP.split(':')[0],pt = _IP.split(':')[1];
+    console.log(ip);
+    console.log(pt);
+    var host = 'ws://' + ip + ':';
+    var port = pt || 8080;
+    var url = 'http://' + ip;
+
+
     w.Interact = {
-        host: 'ws://10.2.24.236:',
-        port: 8000,
-        url: 'http://10.2.24.236',
+        host: host,
+        port: port,
+        url: url,
         // 连接房间
         registerRoom: function (rid) {
             var _this = this;
